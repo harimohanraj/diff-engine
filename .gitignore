@@ -1,2 +1,4 @@
-cabal*
-.*
+*.swp
+.DS_Store
+.cabal_sandbox
+cabal.sandbox.config
