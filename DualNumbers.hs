@@ -1,56 +1,73 @@
-module DualNumbers
-( DualNumber(..)
-, sin'
-, cos'
-, sqrt'
-, ln'
-) where
 
--- types
-data DualNumber = DualNumber { value      :: Double
-			     , derivative :: Double
-		  	     } deriving (Show, Ord, Eq)
+import Control.Applicative
 
--- elementary functions
--- tan, sec, csc, cot, power, exponential, exponetiated
+data DualNum a = DualNum a a deriving (Show, Eq)
+constD :: Num a => a -> DualNum a
+constD x = DualNum x 0
 
-instance Num DualNumber where
-	x + y 	 = DualNumber (value x + value y) (derivative x + derivative y)
-	x * y 	 = let new_val   = (value x * value y)
-		       new_deriv = (value x) * (derivative y) + (value y) * (derivative x)
-		   in DualNumber new_val new_deriv
-        negate x = DualNumber (negate $ value x) (negate $ derivative x)
+idD :: Num a => a -> DualNum a
+idD x = DualNum x 1
+
+(><) :: Num a => (a -> a) -> (a -> a) -> (DualNum a -> DualNum a)
+(f >< f') (DualNum a a') = DualNum (f a) (a' * f' a)
+
+sqr :: Num a => a -> a
+sqr x = x * x
+
+instance Num a => Num (DualNum a) where
+	fromInteger 				= constD . fromInteger
+	DualNum x0 x' + DualNum y0 y'   	= DualNum (x0 + y0) (x' + y')
+	x@(DualNum x0 x') * y@(DualNum y0 y')	= DualNum (x0 * y0) (x' * y + x * y')
+	negate 					= negate >< -1
+	signum					= signum >< 0 
+
+instance Fractional a => Fractional (DualNum a) where
+	fromRational = constD . fromRational
+	recip 	     = recip >< -sqr recip
+
+instance Floating a => Floating (DualNum a) where
+	pi	= DualNum pi 0
+	exp	= exp >< exp
+	log 	= log >< recip
+	sqrt 	= sqrt >< recip (2 * sqrt)
+	sin 	= sin >< cos
+	cos	= cos >< -sin
+	asin	= asin >< recip (sqrt (1 - sqr))
+	acos  	= acos >< recip (-sqrt (1 - sqr))
+	atan  	= atan >< recip (1 + sqr)
+	sinh 	= sinh >< cosh
+	cosh 	= cosh >< sinh
+	asinh 	= asinh >< recip (sqrt (1 + sqr))
+	acosh 	= acosh >< recip (-sqrt (sqr - 1))
+	atanh 	= atanh >< recip (1 - sqr)
+
+	
+		       
+		   
         
-instance Fractional DualNumber where
-	x / y = let new_val   = (value x / value y)
-		    fst_term  = (value x) * (derivative y)
-		    snd_term  = (derivative x) * (value y)
-		    denom     = (value y) * (value y)
-		    new_deriv = (fst_term - snd_term) / denom
-		in DualNumber new_val new_deriv
+        
 
-sin' :: DualNumber -> DualNumber
-sin' x = 
-	let new_val   = sin $ value x
-	    new_deriv = (derivative x) * (cos $ value x)
-	in  DualNumber new_val new_deriv   
+	
+		    
+		    
+		    
+		    
+		
 
-cos' :: DualNumber -> DualNumber
-cos' x = 
-	let new_val   = cos $ value x
-	    new_deriv = (derivative x) * (negate $ sin $ value x)
-	in DualNumber new_val new_deriv
 
-sqrt' :: DualNumber -> DualNumber
-sqrt' x = 
-	let new_val   = sqrt $ value x
-	    new_deriv = (derivative x) * (0.5 / new_val)
-	in DualNumber new_val new_deriv
 
-ln' :: DualNumber -> DualNumber
-ln' x = 
-	let new_val   = log $ value x
-	    new_deriv = (derivative x) * (1 / (value x))
-	in DualNumber new_val new_deriv
 
+
+
+
+
+
+
+
+
+
+
+
+
+	
 
