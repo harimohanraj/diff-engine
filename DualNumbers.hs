@@ -17,29 +17,29 @@ sqr x = x * x
 instance Num a => Num (DualNum a) where
 	fromInteger 				= constD . fromInteger
 	DualNum x0 x' + DualNum y0 y'   	= DualNum (x0 + y0) (x' + y')
-	x@(DualNum x0 x') * y@(DualNum y0 y')	= DualNum (x0 * y0) (x' * y + x * y')
-	negate 					= negate >< -1
-	signum					= signum >< 0 
+	x@(DualNum x0 x') * y@(DualNum y0 y')	= DualNum (x0 * y0) ((x' * y0) + (x0 * y'))
+	negate 					= negate >< (negate . (1 * ))
+	signum					= signum >< (0 * )
 
 instance Fractional a => Fractional (DualNum a) where
 	fromRational = constD . fromRational
-	recip 	     = recip >< -sqr recip
+	recip 	     = recip >< (negate . sqr . recip)
 
 instance Floating a => Floating (DualNum a) where
-	pi	= DualNum pi 0
-	exp	= exp >< exp
-	log 	= log >< recip
-	sqrt 	= sqrt >< recip (2 * sqrt)
-	sin 	= sin >< cos
-	cos	= cos >< -sin
-	asin	= asin >< recip (sqrt (1 - sqr))
-	acos  	= acos >< recip (-sqrt (1 - sqr))
-	atan  	= atan >< recip (1 + sqr)
+	pi		= DualNum pi 0
+	exp		= exp  >< exp
+	log 	= log  >< recip
+	sqrt 	= sqrt >< (recip . (2 * ) . sqrt)
+	sin 	= sin  >< cos
+	cos		= cos  >< (negate . sin)
+	asin	= asin >< (recip . sqrt . (1 - ) . sqr)
+	acos  	= acos >< (recip . negate . sqrt . (1 - ) . sqr)
+	atan  	= atan >< (recip . (1 + ) . sqr)
 	sinh 	= sinh >< cosh
 	cosh 	= cosh >< sinh
-	asinh 	= asinh >< recip (sqrt (1 + sqr))
-	acosh 	= acosh >< recip (-sqrt (sqr - 1))
-	atanh 	= atanh >< recip (1 - sqr)
+	asinh 	= asinh >< (recip . sqrt . (1 + ) . sqr)
+	acosh 	= acosh >< (recip . negate . sqrt . sqr . (-1 + ))
+	atanh 	= atanh >< (recip . (1 - ) . sqr)
 
 	
 		       
